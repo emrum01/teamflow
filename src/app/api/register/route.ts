@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
-import prisma from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 
 export async function POST(req: Request) {
   try {
@@ -8,7 +8,7 @@ export async function POST(req: Request) {
 
     if (!name || !email || !password) {
       return NextResponse.json(
-        { error: "Missing required fields" },
+        { error: "必須項目が入力されていません" },
         { status: 400 }
       );
     }
@@ -19,7 +19,7 @@ export async function POST(req: Request) {
 
     if (existingUser) {
       return NextResponse.json(
-        { error: "User already exists" },
+        { error: "このメールアドレスは既に登録されています" },
         { status: 400 }
       );
     }
@@ -32,22 +32,18 @@ export async function POST(req: Request) {
         email,
         password: hashedPassword,
       },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+      },
     });
 
-    return NextResponse.json(
-      {
-        user: {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-        },
-      },
-      { status: 201 }
-    );
+    return NextResponse.json(user);
   } catch (error) {
-    console.error("Registration error:", error);
+    console.error("ユーザー登録エラー:", error);
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: "ユーザーの登録に失敗しました" },
       { status: 500 }
     );
   }
